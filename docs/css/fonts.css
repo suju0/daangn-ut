@@ -1,0 +1,28 @@
+/* Pretendard v1.3.9 — SIL Open Font License 1.1
+   원본(my-daangn-planb-test.html)에는 아래 3개 woff2가 data URI로 인라인되어 있습니다.
+   여기서는 ../assets/fonts/ 로 추출한 실제 파일을 참조합니다.
+   weight 500은 SemiBold, 800은 Bold에 매핑됩니다. */
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/Pretendard-Regular.subset.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url(../assets/fonts/Pretendard-SemiBold.subset.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url(../assets/fonts/Pretendard-Bold.subset.woff2) format("woff2");
+}

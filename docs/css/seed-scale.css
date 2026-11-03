@@ -1,0 +1,99 @@
+/*!
+ * SEED Design System — Scale tokens
+ * Source: daangn/seed-design · Rootage dimension.json / radius.json /
+ *         font-size.json / line-height.json / font-weight.json
+ *
+ * font-size / line-height 는 static(px) 값을 사용합니다.
+ * UT 화면은 참가자 기기의 폰트 스케일링에 영향받지 않아야 자극이 일정하게 유지되기 때문입니다.
+ */
+:root {
+  /* dimension */
+  --seed-dimension-x0_5: 2px;
+  --seed-dimension-x1: 4px;
+  --seed-dimension-x1_5: 6px;
+  --seed-dimension-x2: 8px;
+  --seed-dimension-x2_5: 10px;
+  --seed-dimension-x3: 12px;
+  --seed-dimension-x3_5: 14px;
+  --seed-dimension-x4: 16px;
+  --seed-dimension-x4_5: 18px;
+  --seed-dimension-x5: 20px;
+  --seed-dimension-x6: 24px;
+  --seed-dimension-x7: 28px;
+  --seed-dimension-x8: 32px;
+  --seed-dimension-x9: 36px;
+  --seed-dimension-x10: 40px;
+  --seed-dimension-x12: 48px;
+  --seed-dimension-x13: 52px;
+  --seed-dimension-x14: 56px;
+  --seed-dimension-x16: 64px;
+
+  /* dimension · semantic */
+  --seed-dimension-spacing-x-global-gutter: var(--seed-dimension-x4);
+  --seed-dimension-spacing-y-component-default: var(--seed-dimension-x3);
+  --seed-dimension-spacing-y-between-text: var(--seed-dimension-x1_5);
+  --seed-dimension-spacing-y-screen-bottom: var(--seed-dimension-x14);
+
+  /* radius */
+  --seed-radius-r0_5: 2px;
+  --seed-radius-r1: 4px;
+  --seed-radius-r1_5: 6px;
+  --seed-radius-r2: 8px;
+  --seed-radius-r2_5: 10px;
+  --seed-radius-r3: 12px;
+  --seed-radius-r3_5: 14px;
+  --seed-radius-r4: 16px;
+  --seed-radius-r5: 20px;
+  --seed-radius-r6: 24px;
+  --seed-radius-full: 9999px;
+
+  /* font-size (static) */
+  --seed-font-size-t1: 11px;
+  --seed-font-size-t2: 12px;
+  --seed-font-size-t3: 13px;
+  --seed-font-size-t4: 14px;
+  --seed-font-size-t5: 16px;
+  --seed-font-size-t6: 18px;
+  --seed-font-size-t7: 20px;
+  --seed-font-size-t8: 22px;
+  --seed-font-size-t9: 24px;
+  --seed-font-size-t10: 26px;
+  --seed-font-size-t11: 28px;
+  --seed-font-size-t12: 32px;
+
+  /* line-height (static) */
+  --seed-line-height-t1: 15px;
+  --seed-line-height-t2: 16px;
+  --seed-line-height-t3: 18px;
+  --seed-line-height-t4: 19px;
+  --seed-line-height-t5: 22px;
+  --seed-line-height-t6: 24px;
+  --seed-line-height-t7: 27px;
+  --seed-line-height-t8: 30px;
+  --seed-line-height-t9: 32px;
+  --seed-line-height-t10: 35px;
+  --seed-line-height-t11: 38px;
+  --seed-line-height-t12: 42px;
+
+  /* font-weight */
+  --seed-font-weight-regular: 400;
+  --seed-font-weight-medium: 500;
+  --seed-font-weight-bold: 700;
+
+  /* duration */
+  --seed-duration-d1: 50ms;
+  --seed-duration-d2: 100ms;
+  --seed-duration-d3: 150ms;
+  --seed-duration-d4: 200ms;
+  --seed-duration-d5: 250ms;
+  --seed-duration-d6: 300ms;
+  --seed-duration-color-transition: var(--seed-duration-d3);
+  --seed-duration-pressed-scale: var(--seed-duration-d3);
+
+  /* timing-function */
+  --seed-timing-function-linear: cubic-bezier(0, 0, 1, 1);
+  --seed-timing-function-easing: cubic-bezier(0.35, 0, 0.35, 1);
+  --seed-timing-function-enter: cubic-bezier(0, 0, 0.15, 1);
+  --seed-timing-function-exit: cubic-bezier(0.35, 0, 1, 1);
+  --seed-timing-function-pressed-scale: cubic-bezier(0, 0, 0.15, 1);
+}

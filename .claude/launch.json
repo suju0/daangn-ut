@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "daangn-ut",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/ut-server.js"],
+      "port": 8780
+    },
+    {
+      "name": "seed-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "seed-design-site", "-p", "4321", "-c-1"],
+      "port": 4321
+    }
+  ]
+}

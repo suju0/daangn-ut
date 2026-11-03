@@ -1,0 +1,978 @@
+/*!
+ * 당근 앱 리디자인 — UT Prototype 진행 화면
+ * 레이아웃 레퍼런스: Maze (좌측 블록 레일 · 중앙 설문 · 우측 프로토타입 프리뷰)
+ * 색·간격·타이포는 전부 SEED 토큰만 사용합니다.
+ *
+ * 테마는 light 로 고정합니다. UT 는 모든 참가자에게 동일한 자극을 제시해야 하므로
+ * 참가자 기기의 다크 모드 설정이 설문 화면 색을 바꾸면 안 됩니다.
+ */
+
+* { box-sizing: border-box; }
+
+/* display 를 지정한 요소에도 hidden 이 먹도록 합니다 (UA 기본값은 display 선언에 밀립니다) */
+[hidden] { display: none !important; }
+
+html { color-scheme: light; }
+
+:root {
+  /* 빗금 — 그룹 막대·비교 막대·범례가 모두 같은 방향("/")·두께(1px)·간격(5px)을 쓰도록 한곳에 둡니다. */
+  --hatch: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+body {
+  margin: 0;
+  background-color: var(--seed-color-bg-layer-basement);
+  color: var(--seed-color-fg-neutral);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
+    "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   App shell
+   ═══════════════════════════════════════════════════════════════ */
+.app {
+  display: grid;
+  grid-template-rows: var(--seed-dimension-x14) 1fr;
+  height: 100vh;
+}
+
+/* ── Top bar ───────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x4);
+  padding: 0 var(--seed-dimension-x5);
+  background-color: var(--seed-color-bg-layer-default);
+  border-bottom: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2_5);
+  min-width: 0;
+}
+/* 당근 로고는 그 자체로 브랜드 컬러를 담고 있어 별도 배경을 두지 않습니다. */
+.topbar__logo {
+  flex: none;
+  display: block;
+  height: var(--seed-dimension-x7);
+  width: auto;
+}
+.topbar__title { display: flex; flex-direction: column; min-width: 0; }
+.topbar__title b { color: var(--seed-color-fg-neutral); }
+.topbar__title span { color: var(--seed-color-fg-neutral-subtle); }
+
+.topbar__stage {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2);
+  margin-left: var(--seed-dimension-x2);
+}
+.stage-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x1_5);
+  border-radius: var(--seed-radius-full);
+  padding: var(--seed-dimension-x1_5) var(--seed-dimension-x3);
+  background-color: var(--seed-color-bg-neutral-weak);
+  color: var(--seed-color-fg-neutral-subtle);
+  font-size: var(--seed-font-size-t2);
+  line-height: var(--seed-line-height-t2);
+  font-weight: var(--seed-font-weight-bold);
+  white-space: nowrap;
+}
+.stage-pill__dot {
+  width: var(--seed-dimension-x2);
+  height: var(--seed-dimension-x2);
+  border-radius: var(--seed-radius-full);
+  background-color: var(--seed-color-palette-gray-500);
+}
+/**
+ * 단계 표시의 색은 **구간이 정합니다.** 개선 전(AS-IS)은 그레이톤, 개선 후(TO-BE)는 당근 주황.
+ * 문항 위 딱지 · 비교 카드와 같은 규칙이라, 화면 어디서 보든 같은 색으로 읽힙니다.
+ * 지금 어느 단계인지는 색이 아니라 **꽉 채웠는지 여부**로 구분합니다.
+ */
+
+/* 개선 후(TO-BE) — 어느 상태에서나 당근 주황을 답니다 (딱지와 같은 톤) */
+.stage-pill[data-arm="tobe"] {
+  background-color: var(--seed-color-bg-brand-weak);
+  color: var(--seed-color-fg-brand);
+}
+.stage-pill[data-arm="tobe"] .stage-pill__dot { background-color: var(--seed-color-fg-brand); }
+
+/* 지나온 단계 — 글자만 한 단계 진하게 */
+.stage-pill[data-state="done"] { color: var(--seed-color-fg-neutral); }
+.stage-pill[data-state="done"] .stage-pill__dot { background-color: var(--seed-color-fg-neutral); }
+
+/* 지금 단계 — 구간 색으로 꽉 채웁니다 */
+.stage-pill[data-state="active"] { background-color: var(--seed-color-bg-neutral-solid); color: var(--seed-color-fg-neutral-inverted); }
+.stage-pill[data-state="active"] .stage-pill__dot { background-color: var(--seed-color-palette-static-white); }
+.stage-pill[data-arm="tobe"][data-state="done"] { color: var(--seed-color-fg-brand); }
+.stage-pill[data-arm="tobe"][data-state="done"] .stage-pill__dot { background-color: var(--seed-color-fg-brand); }
+.stage-pill[data-arm="tobe"][data-state="active"] { background-color: var(--seed-color-bg-brand-solid); color: var(--seed-color-palette-static-white); }
+.stage-pill[data-arm="tobe"][data-state="active"] .stage-pill__dot { background-color: var(--seed-color-palette-static-white); }
+.stage-arrow { color: var(--seed-color-fg-placeholder); flex: none; }
+
+.topbar__spacer { flex: 1; }
+.topbar__progress { display: flex; align-items: center; gap: var(--seed-dimension-x2_5); }
+.progress-track {
+  width: 160px;
+  height: var(--seed-dimension-x1_5);
+  border-radius: var(--seed-radius-full);
+  background-color: var(--seed-color-bg-neutral-weak);
+  overflow: hidden;
+}
+.progress-range {
+  height: 100%;
+  border-radius: var(--seed-radius-full);
+  background-color: var(--seed-color-bg-brand-solid);
+  transition: width var(--seed-duration-d6) var(--seed-timing-function-easing);
+}
+.topbar__count { color: var(--seed-color-fg-neutral-subtle); font-variant-numeric: tabular-nums; }
+
+/* ── Body columns ──────────────────────────────────────────── */
+.workspace {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr) 452px;
+  min-height: 0;
+}
+
+/* ── Left rail (Maze 의 블록 리스트) ─────────────────────────── */
+.rail {
+  background-color: var(--seed-color-bg-layer-default);
+  border-right: 1px solid var(--seed-color-stroke-neutral-subtle);
+  overflow-y: auto;
+  padding: var(--seed-dimension-x4) var(--seed-dimension-x3);
+}
+.rail__group + .rail__group { margin-top: var(--seed-dimension-x5); }
+.rail__group-title {
+  padding: 0 var(--seed-dimension-x2) var(--seed-dimension-x2);
+  color: var(--seed-color-fg-neutral-subtle);
+  letter-spacing: 0.02em;
+}
+.rail__item {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2_5);
+  width: 100%;
+  border: 0;
+  background: none;
+  border-radius: var(--seed-radius-r2_5);
+  padding: var(--seed-dimension-x2_5) var(--seed-dimension-x2_5);
+  font-family: inherit;
+  text-align: left;
+  color: var(--seed-color-fg-neutral-subtle);
+  /* 지나온 문항은 눌러서 되돌아갈 수 있습니다. */
+  cursor: pointer;
+  transition: background-color var(--seed-duration-color-transition) var(--seed-timing-function-easing);
+}
+.rail__item:disabled { cursor: default; opacity: 0.55; }
+.rail__item:not(:disabled):hover { background-color: var(--seed-color-bg-layer-default-pressed); }
+.rail__item[data-state="current"],
+.rail__item[data-state="current"]:not(:disabled):hover {
+  background-color: var(--seed-color-bg-brand-weak);
+  color: var(--seed-color-fg-brand-contrast);
+}
+.rail__item[data-state="done"] { color: var(--seed-color-fg-neutral-muted); }
+.rail__icon {
+  flex: none;
+  width: var(--seed-dimension-x6);
+  height: var(--seed-dimension-x6);
+  border-radius: var(--seed-radius-r1_5);
+  display: grid;
+  place-items: center;
+  background-color: var(--seed-color-bg-neutral-weak);
+  color: var(--seed-color-fg-neutral-subtle);
+}
+.rail__item[data-state="current"] .rail__icon { background-color: var(--seed-color-bg-brand-solid); color: var(--seed-color-palette-static-white); }
+.rail__item[data-state="done"] .rail__icon { background-color: var(--seed-color-bg-positive-weak); color: var(--seed-color-fg-positive); }
+.rail__label { flex: 1; min-width: 0; }
+.rail__label b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail__label span { display: block; color: var(--seed-color-fg-placeholder); }
+
+/* ── Center · 설문 ─────────────────────────────────────────── */
+.survey {
+  /* 기본 레이어(흰색)로 둡니다. basement 로 두면 disabled 버튼(bg.disabled = gray-200)이
+     배경과 같은 색이 되어 보이지 않습니다. */
+  background-color: var(--seed-color-bg-layer-default);
+  overflow-y: auto;
+  padding: var(--seed-dimension-x10) var(--seed-dimension-x8) var(--seed-dimension-x16);
+  display: flex;
+  justify-content: center;
+}
+.survey__inner { width: 100%; max-width: 560px; }
+
+.q-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2);
+  margin-bottom: var(--seed-dimension-x3);
+}
+/* 제목 한 줄. '필수'는 같은 줄 오른쪽 끝에 붙습니다. */
+.q-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--seed-dimension-x3);
+  margin-bottom: var(--seed-dimension-x2_5);
+}
+.q-head .q-title { margin: 0; flex: 1; min-width: 0; }
+.q-head .q-required { flex: none; }
+/* 작업 카드 아래 난이도 질문은 위 카드와 떨어져 있어야 읽힙니다. */
+.task-seq .q-head { margin-bottom: var(--seed-dimension-x5); }
+.q-title {
+  margin: 0 0 var(--seed-dimension-x2_5);
+  color: var(--seed-color-fg-neutral);
+  word-break: keep-all;
+}
+.q-desc {
+  margin: 0 0 var(--seed-dimension-x6);
+  color: var(--seed-color-fg-neutral-muted);
+  word-break: keep-all;
+}
+/* 본문은 muted 라 굵게만 하면 덜 두드러집니다. 강조는 색도 한 단계 올립니다. */
+.q-desc strong {
+  color: var(--seed-color-fg-neutral);
+  font-weight: var(--seed-font-weight-bold);
+}
+.q-options { display: flex; flex-direction: column; gap: var(--seed-dimension-x2_5); }
+.q-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x3);
+  margin-top: var(--seed-dimension-x8);
+}
+.q-hint { color: var(--seed-color-fg-placeholder); }
+.q-required { color: var(--seed-color-fg-critical); }
+
+/* 척도(Scale) */
+.scale {
+  display: grid;
+  gap: var(--seed-dimension-x2);
+}
+.scale__row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--seed-dimension-x2); }
+.scale__btn {
+  border: 0;
+  border-radius: var(--seed-radius-r2_5);
+  padding: var(--seed-dimension-x4) var(--seed-dimension-x1);
+  background-color: var(--seed-color-bg-transparent);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-weak);
+  color: var(--seed-color-fg-neutral);
+  font-family: inherit;
+  font-size: var(--seed-font-size-t5);
+  line-height: var(--seed-line-height-t5);
+  font-weight: var(--seed-font-weight-bold);
+  cursor: pointer;
+  transition: background-color var(--seed-duration-color-transition) var(--seed-timing-function-easing),
+              box-shadow 0.1s var(--seed-timing-function-easing);
+}
+.scale__btn:hover { background-color: var(--seed-color-bg-transparent-pressed); }
+.scale__btn[aria-pressed="true"] {
+  background-color: var(--seed-color-bg-neutral-solid);
+  color: var(--seed-color-fg-neutral-inverted);
+  box-shadow: none;
+}
+.scale__legend {
+  display: flex;
+  justify-content: space-between;
+  color: var(--seed-color-fg-placeholder);
+}
+
+/* 비교 선택(개선 전 / 개선 후) */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--seed-dimension-x3); }
+.compare__card {
+  border: 0;
+  border-radius: var(--seed-radius-r3);
+  background-color: var(--seed-color-bg-transparent);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-weak);
+  padding: var(--seed-dimension-x5) var(--seed-dimension-x4);
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--seed-duration-color-transition) var(--seed-timing-function-easing),
+              box-shadow 0.1s var(--seed-timing-function-easing);
+}
+.compare__card:hover { background-color: var(--seed-color-bg-transparent-pressed); }
+.compare__card[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--seed-color-stroke-neutral-contrast); }
+.compare__badge {
+  display: inline-block;
+  margin-bottom: var(--seed-dimension-x2_5);
+  border-radius: var(--seed-radius-full);
+  padding: var(--seed-dimension-x1) var(--seed-dimension-x2_5);
+  font-size: var(--seed-font-size-t2);
+  line-height: var(--seed-line-height-t2);
+  font-weight: var(--seed-font-weight-bold);
+}
+/* 딱지 · 상단 단계 표시와 같은 규칙 — 개선 전은 그레이톤, 개선 후는 당근 주황 */
+.compare__card[data-variant="asis"] .compare__badge { background-color: var(--seed-color-bg-neutral-weak); color: var(--seed-color-fg-neutral-subtle); }
+.compare__card[data-variant="tobe"] .compare__badge { background-color: var(--seed-color-bg-brand-weak); color: var(--seed-color-fg-brand); }
+/* 고른 쪽의 테두리도 그 구간 색을 씁니다. */
+.compare__card[data-variant="tobe"][aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--seed-color-bg-brand-solid); }
+.compare__card p { margin: var(--seed-dimension-x1_5) 0 0; color: var(--seed-color-fg-neutral-muted); }
+
+/* 태스크 블록 */
+.task-card {
+  border-radius: var(--seed-radius-r4);
+  background-color: var(--seed-color-bg-layer-fill);
+  padding: var(--seed-dimension-x6);
+}
+.task-card--waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x4);
+}
+.task-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--seed-dimension-x3);
+  margin-bottom: var(--seed-dimension-x4);
+}
+.task-timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--seed-color-fg-neutral-subtle);
+}
+/* 프로토타입을 다시 불러오는 동안은 시계가 멈춰 있습니다. 멈춰 있다는 걸 눈으로도 알리려고 흐려 둡니다. */
+.task-timer[data-paused="true"] { opacity: 0.45; }
+.task-actions { display: flex; flex-direction: column; gap: var(--seed-dimension-x2_5); margin-top: var(--seed-dimension-x5); }
+.task-meta {
+  display: flex;
+  gap: var(--seed-dimension-x5);
+  margin-top: var(--seed-dimension-x4);
+  padding-top: var(--seed-dimension-x4);
+  border-top: 1px solid var(--seed-color-stroke-neutral-subtle);
+  color: var(--seed-color-fg-placeholder);
+}
+.task-meta b { color: var(--seed-color-fg-neutral-muted); font-variant-numeric: tabular-nums; }
+
+/* 작업 카드 아래에 이어 붙는 난이도(SEQ) */
+.task-seq {
+  margin-top: var(--seed-dimension-x8);
+  padding-top: var(--seed-dimension-x8);
+  border-top: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+
+/* ── 표 형식 문항 (SUS) ─────────────────────────────────────
+   문장 10개를 화면 10개로 쪼개면 세션이 길어져서, 한 화면에 표로 묻습니다. */
+.matrix { margin-top: var(--seed-dimension-x2); }
+.matrix__legend {
+  display: flex;
+  justify-content: space-between;
+  color: var(--seed-color-fg-placeholder);
+  margin-bottom: var(--seed-dimension-x2);
+  padding-left: 45%;
+}
+.matrix__table { width: 100%; border-collapse: collapse; }
+.matrix__table thead th {
+  padding-bottom: var(--seed-dimension-x2);
+  color: var(--seed-color-fg-placeholder);
+  font-weight: var(--seed-font-weight-regular);
+  width: 11%;
+}
+.matrix__table thead th:first-child { width: 45%; }
+.matrix__table tbody tr { border-top: 1px solid var(--seed-color-stroke-neutral-subtle); }
+.matrix__table td { text-align: center; padding: var(--seed-dimension-x1) 0; }
+.matrix__stmt {
+  text-align: left;
+  font-weight: var(--seed-font-weight-regular);
+  color: var(--seed-color-fg-neutral);
+  padding: var(--seed-dimension-x3) var(--seed-dimension-x3) var(--seed-dimension-x3) 0;
+  word-break: keep-all;
+}
+.matrix__no {
+  display: inline-block;
+  min-width: 18px;
+  color: var(--seed-color-fg-placeholder);
+}
+.matrix__table tbody tr[data-answered="true"] .matrix__stmt { color: var(--seed-color-fg-neutral-muted); }
+.matrix__dot {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--seed-radius-full);
+  background-color: var(--seed-color-bg-transparent);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-weak);
+  cursor: pointer;
+  transition: background-color var(--seed-duration-color-transition) var(--seed-timing-function-easing),
+              box-shadow 0.1s var(--seed-timing-function-easing);
+}
+.matrix__dot:hover { background-color: var(--seed-color-bg-transparent-pressed); }
+.matrix__dot[aria-checked="true"] {
+  background-color: var(--seed-color-bg-neutral-solid);
+  box-shadow: none;
+}
+.matrix__progress { margin: var(--seed-dimension-x4) 0 0; color: var(--seed-color-fg-placeholder); }
+
+/* ── 진행 화면 안에 띄우는 결과 대시보드 ────────────────────── */
+.view-switch { flex: none; }
+.view-switch .seed-segmented-control__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--seed-dimension-x1);
+}
+.view-switch svg { display: block; }
+.dash-panel { overflow-y: auto; min-height: 0; }
+.dash-panel .dash { min-height: 0; }
+
+/* Welcome / Outro */
+.pane-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+}
+.pane-center .q-title { margin-top: 0; }
+
+/* ── Right · 프로토타입 ─────────────────────────────────────── */
+.proto {
+  background-color: var(--seed-color-bg-layer-default);
+  border-left: 1px solid var(--seed-color-stroke-neutral-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.proto__head {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2_5);
+  padding: var(--seed-dimension-x3_5) var(--seed-dimension-x5);
+  border-bottom: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+.proto__head-title { flex: 1; min-width: 0; }
+.proto__stage {
+  padding: var(--seed-dimension-x5);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--seed-color-bg-layer-basement);
+  /* 보여 주지 않는 기기를 화면 밖으로 밀어 두기 위한 기준점입니다. */
+  position: relative;
+  overflow: hidden;
+}
+/**
+ * 기기 영역.
+ * Figma 프레임(130:10417)이 그림자와 라운드까지 포함한 383×801 이라
+ * 여기서는 비율만 맞춘 투명 컨테이너로 두고, 기기 외형은 Figma 가 그린 것을 그대로 보여줍니다.
+ */
+.device {
+  position: relative;
+  /**
+   * 모서리 반지름 — 383×801 디자인 기준 px 값입니다.
+   * 프로토타입을 확대하거나 잘라내지 않고, 상자를 자르는 곡률만 정합니다.
+   * px 로 고정하면 화면 폭에 따라 축소된 프로토타입과 어긋나므로 비율로 환산해 씁니다.
+   */
+  --proto-corner: 50;
+
+  /**
+   * 넛지 — iframe 을 **크기는 그대로 둔 채** 오른쪽·아래로 이만큼 밀어 둡니다.
+   *
+   * 검은 실선은 iframe 안쪽 끝, 즉 프로토타입 내용과 iframe 경계 사이에 남는
+   * 임베드 자체의 어두운 바탕입니다. 그래서 iframe 을 줄이면 그 띠가 안쪽으로
+   * 따라 들어올 뿐 사라지지 않습니다. 없애려면 띠가 상자 밖으로 나가야 하고,
+   * 그러려면 크기가 아니라 **위치**를 옮겨야 합니다.
+   *
+   * 오른쪽·아래로 민 만큼 왼쪽·위에는 상자의 투명 배경(= 뒤의 스테이지 색)이
+   * 드러나는데, 배경과 같은 색이라 보이지 않습니다.
+   * 선이 남으면 이 값만 0.5px 씩 올리면 됩니다.
+   * 프로토타입 크기 · 모서리 반지름 · 기기 상자 크기는 모두 그대로입니다.
+   */
+  --proto-nudge: 2px;
+  /* 높이를 먼저 정하고 비율로 폭을 얻습니다. 폭을 고정하면 aspect-ratio 가 무시돼
+     Figma 가 프레임을 레터박스로 감싸면서 빈 배경이 생깁니다. */
+  height: min(801px, 100%);
+  aspect-ratio: 383 / 801;
+  max-width: 100%;
+  border-radius: calc(var(--proto-corner) / 383 * 100%) / calc(var(--proto-corner) / 801 * 100%);
+  overflow: hidden;
+  /* 뒷배경은 두지 않습니다. 모서리를 잘라낸 자리에 어떤 색도 비치지 않도록 투명입니다. */
+  background-color: transparent;
+}
+/**
+ * 지금 보여 주지 않는 기기.
+ * display:none 으로 감추면 브라우저가 iframe 그리기를 미루고, 그러면 Figma 앱이
+ * 실제로 켜지지 않은 채 대기하다가 다시 보여 주는 순간부터 로딩이 시작됩니다.
+ * 그래서 감추지 않고 화면 밖으로 밀어 둡니다. 보이지만 않을 뿐 정상적으로 다 켜집니다.
+ */
+.device[data-shown="false"] {
+  position: absolute;
+  top: var(--seed-dimension-x5);
+  left: -200vw;
+  pointer-events: none;
+}
+
+/**
+ * 기기 한 대 안에는 iframe 이 두 장 겹쳐 있습니다.
+ *   live  — 지금 참가자가 보고 누르는 프레임
+ *   spare — 첫 화면 상태로 미리 켜 둔 예비 프레임. 되돌릴 때 이 장과 자리를 바꿉니다.
+ * 예비 프레임도 투명할 뿐 계속 그려지고 있어야 미리 켜지므로 display 로 감추지 않습니다.
+ */
+.device__frame {
+  /* 크기는 상자와 똑같이 두고, 위치만 오른쪽·아래로 --proto-nudge 만큼 옮깁니다. */
+  position: absolute;
+  top: var(--proto-nudge);
+  left: var(--proto-nudge);
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.device__frame { border-radius: inherit; }
+.device__frame[data-role="live"] { z-index: 1; opacity: 1; }
+.device__frame[data-role="spare"] { z-index: 0; opacity: 0; pointer-events: none; }
+
+/* 로딩 — 미리 불러오는 동안 빈 흰 상자 대신 상태를 보여 줍니다. */
+.device__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* 겹쳐 둔 iframe 두 장보다 위 */
+  border-radius: inherit;
+  background-color: var(--seed-color-bg-layer-default);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--seed-dimension-x3);
+  color: var(--seed-color-fg-placeholder);
+}
+.device[data-ready="true"] .device__loading { display: none; }
+.device__spinner,
+.save-state__spinner {
+  width: var(--seed-dimension-x6);
+  height: var(--seed-dimension-x6);
+  border-radius: var(--seed-radius-full);
+  border: 2px solid var(--seed-color-palette-gray-400);
+  border-top-color: var(--seed-color-bg-brand-solid);
+  animation: spin 0.8s linear infinite;
+}
+.save-state__spinner { width: 18px; height: 18px; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .device__spinner, .save-state__spinner { animation-duration: 2.4s; }
+}
+.device__empty {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--seed-color-bg-layer-default);
+  box-shadow: 0 1px 2px var(--seed-color-palette-static-black-alpha-200);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--seed-dimension-x2);
+  padding: var(--seed-dimension-x6);
+  text-align: center;
+  color: var(--seed-color-fg-placeholder);
+}
+.proto__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--seed-dimension-x2);
+  padding: var(--seed-dimension-x3) var(--seed-dimension-x5);
+  border-top: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+.proto__foot .seed-action-button { flex: none; }
+.proto__foot-spacer { flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Dashboard (#/result)
+   ═══════════════════════════════════════════════════════════════ */
+.dash { min-height: 100vh; background-color: var(--seed-color-bg-layer-basement); }
+.dash__inner { max-width: 1080px; margin: 0 auto; padding: var(--seed-dimension-x10) var(--seed-dimension-x6) var(--seed-dimension-x16); }
+.dash__head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--seed-dimension-x4);
+  margin-bottom: var(--seed-dimension-x6);
+  flex-wrap: wrap;
+}
+.dash__head h1 { margin: 0 0 var(--seed-dimension-x1_5); }
+.dash__head p { margin: 0; color: var(--seed-color-fg-neutral-subtle); }
+.dash__actions { margin-left: auto; display: flex; gap: var(--seed-dimension-x2); flex-wrap: wrap; }
+
+.card {
+  background-color: var(--seed-color-bg-layer-default);
+  border-radius: var(--seed-radius-r4);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-subtle);
+  padding: var(--seed-dimension-x6);
+}
+.card + .card,
+.stat-row + .card { margin-top: var(--seed-dimension-x4); }
+.card__title { margin: 0 0 var(--seed-dimension-x1_5); }
+.card__note { margin: 0 0 var(--seed-dimension-x5); color: var(--seed-color-fg-neutral-subtle); }
+
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--seed-dimension-x4); }
+.stat {
+  background-color: var(--seed-color-bg-layer-default);
+  border-radius: var(--seed-radius-r4);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-subtle);
+  padding: var(--seed-dimension-x5);
+}
+.stat__label { color: var(--seed-color-fg-neutral-subtle); margin-bottom: var(--seed-dimension-x2); }
+.stat__value {
+  color: var(--seed-color-fg-neutral);
+  font-size: var(--seed-font-size-t9);
+  line-height: var(--seed-line-height-t9);
+  /* 레퍼런스의 큰 숫자처럼 medium 으로 둡니다. bold 면 화면 전체가 무거워집니다. */
+  font-weight: var(--seed-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.stat__value--sm {
+  font-size: var(--seed-font-size-t7);
+  line-height: var(--seed-line-height-t7);
+}
+.stat__unit {
+  font-size: var(--seed-font-size-t5);
+  font-weight: var(--seed-font-weight-regular);
+  color: var(--seed-color-fg-placeholder);
+  margin-left: 1px;
+}
+.stat__sub { color: var(--seed-color-fg-placeholder); margin-top: var(--seed-dimension-x1); }
+
+/* ── 차트 ────────────────────────────────────────────────────
+   개선 전(AS-IS)은 그레이 기준선, 개선 후(TO-BE)는 당근 주황 + 빗금.
+   색 하나에만 기대지 않도록 무늬(빗금)와 값 라벨을 함께 씁니다.
+   ──────────────────────────────────────────────────────────── */
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--seed-dimension-x6);
+  margin-bottom: var(--seed-dimension-x5);
+}
+.card__head .card__note { margin-bottom: 0; }
+
+/* 변화량 — 레퍼런스의 `72%/100` 처럼 큰 숫자 + 옅은 기준, 그 아래 한 줄 해석.
+   숫자만 크게 두면 좋아진 건지 나빠진 건지 오해하기 쉽습니다. */
+.delta {
+  flex: none;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--seed-dimension-x0_5);
+}
+.delta__value {
+  font-size: var(--seed-font-size-t9);
+  line-height: var(--seed-line-height-t9);
+  /* 굵기를 medium 으로 낮춥니다. bold 로 두면 숫자가 제목보다 먼저 읽힙니다. */
+  font-weight: var(--seed-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.delta__unit {
+  font-size: var(--seed-font-size-t5);
+  font-weight: var(--seed-font-weight-regular);
+  color: var(--seed-color-fg-placeholder);
+  margin-left: 1px;
+}
+.delta__note { color: var(--seed-color-fg-placeholder); white-space: nowrap; }
+.delta[data-dir="better"] .delta__value { color: var(--seed-color-fg-positive); }
+.delta[data-dir="worse"] .delta__value { color: var(--seed-color-fg-critical); }
+.delta--flat .delta__value,
+.delta--empty .delta__value { color: var(--seed-color-fg-placeholder); }
+
+.legend { display: flex; gap: var(--seed-dimension-x4); margin-bottom: var(--seed-dimension-x4); }
+.legend__item { display: flex; align-items: center; gap: var(--seed-dimension-x2); color: var(--seed-color-fg-neutral-muted); }
+.legend__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--seed-radius-r0_5);
+  flex: none;
+}
+.legend__swatch[data-arm="asis"] { background-color: var(--seed-color-palette-gray-400); }
+.legend__swatch[data-arm="tobe"] {
+  background-color: var(--seed-color-palette-carrot-600);
+  background-image: var(--hatch);
+}
+
+/* ── Small Multiples — 지표 하나가 카드 하나 ──────────────────
+   작업 1·2·3 을 한 그래프에 겹치지 않고, 작업별로 칸을 나눠 막대를 옆에 세웁니다. */
+.section { margin-top: var(--seed-dimension-x4); }
+.section + .section,
+.section + .card { margin-top: var(--seed-dimension-x4); }
+.section__head { margin-bottom: var(--seed-dimension-x4); }
+.section__head h2 { margin: 0 0 var(--seed-dimension-x1_5); }
+.section__head p { margin: 0; color: var(--seed-color-fg-neutral-subtle); }
+.section__note {
+  margin-top: var(--seed-dimension-x4);
+  padding: var(--seed-dimension-x4) var(--seed-dimension-x5);
+  border-radius: var(--seed-radius-r3);
+  background-color: var(--seed-color-bg-layer-default);
+  border-left: 3px solid var(--seed-color-bg-brand-solid);
+  color: var(--seed-color-fg-neutral-muted);
+  line-height: var(--seed-line-height-t5);
+}
+.section__note b { color: var(--seed-color-fg-neutral); font-weight: var(--seed-font-weight-bold); }
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(296px, 1fr));
+  gap: var(--seed-dimension-x5);
+}
+.card--metric { padding: var(--seed-dimension-x6) var(--seed-dimension-x5) var(--seed-dimension-x5); }
+.card--metric + .card--metric { margin-top: 0; }
+.metric__title { margin: 0 0 var(--seed-dimension-x1); color: var(--seed-color-fg-neutral); }
+.metric__unit { margin: 0 0 var(--seed-dimension-x6); color: var(--seed-color-fg-placeholder); }
+
+/* 그래프 영역 */
+.gbar__plot {
+  position: relative;
+  padding-left: var(--seed-dimension-x6); /* 눈금 숫자 자리 */
+}
+.gbar__grid {
+  position: absolute;
+  left: var(--seed-dimension-x6);
+  right: 0;
+  /* 막대 위 값 라벨이 차지하는 만큼 내려서, 눈금선이 막대 트랙과 정확히 맞물리게 합니다. */
+  top: 20px;
+  height: 148px;
+  pointer-events: none;
+}
+.gbar__gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--seed-color-stroke-neutral-subtle);
+}
+.gbar__gridlabel {
+  position: absolute;
+  right: calc(100% + 6px);
+  top: -7px;
+  font-size: 10px;
+  font-style: normal;
+  color: var(--seed-color-fg-placeholder);
+  font-variant-numeric: tabular-nums;
+}
+
+.gbar__groups {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+.gbar__group {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+/* 작업 사이 칸막이 — 어느 막대 쌍이 한 작업인지 헷갈리지 않게. 작업 이름 아래까지 내려갑니다. */
+.gbar__group:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: -36px;
+  width: 1px;
+  background-color: var(--seed-color-palette-gray-200);
+}
+.gbar__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--seed-dimension-x1);
+  height: 168px; /* 값 라벨 20px + 막대 트랙 148px */
+}
+.gbar__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30px;
+  height: 100%;
+}
+/* 막대가 자라는 실제 영역. 값 라벨을 뺀 높이라 만점이어도 라벨이 밀려 나가지 않습니다. */
+.gbar__track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.gbar__val {
+  height: 20px;
+  line-height: 20px;
+  font-size: 11px;
+  font-weight: var(--seed-font-weight-medium);
+  color: var(--seed-color-fg-placeholder);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.gbar__val[data-arm="tobe"] { color: var(--seed-color-fg-brand-contrast); font-weight: var(--seed-font-weight-bold); }
+.gbar__bar {
+  width: 100%;
+  min-height: 2px;
+  /* 데이터 끝만 둥글게, 바닥은 기준선에 붙입니다. */
+  border-radius: var(--seed-radius-r1) var(--seed-radius-r1) 0 0;
+  transition: height var(--seed-duration-d6) var(--seed-timing-function-easing);
+}
+.gbar__bar[data-arm="asis"] { background-color: var(--seed-color-palette-gray-400); }
+.gbar__bar[data-arm="tobe"] {
+  background-color: var(--seed-color-palette-carrot-600);
+  background-image: var(--hatch);
+}
+.gbar__labels { display: flex; }
+.gbar__label {
+  flex: 1;
+  min-width: 0;
+  padding: var(--seed-dimension-x2_5) var(--seed-dimension-x1) 0;
+  min-height: 36px;
+  text-align: center;
+  color: var(--seed-color-fg-neutral-muted);
+  word-break: keep-all;
+}
+
+/* 작업별 개선 폭 배지 */
+.gbar__deltas { display: flex; margin-top: var(--seed-dimension-x3); }
+.gbar__delta-cell { flex: 1; text-align: center; }
+.badge {
+  display: inline-block;
+  border-radius: var(--seed-radius-full);
+  padding: var(--seed-dimension-x0_5) var(--seed-dimension-x2);
+  font-size: 11px;
+  font-weight: var(--seed-font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.badge[data-tone="good"] { background-color: var(--seed-color-bg-positive-weak); color: var(--seed-color-fg-positive-contrast); }
+.badge[data-tone="bad"] { background-color: var(--seed-color-bg-critical-weak); color: var(--seed-color-fg-critical-contrast); }
+.badge[data-tone="none"] { background-color: var(--seed-color-bg-neutral-weak); color: var(--seed-color-fg-placeholder); }
+
+
+/* 비교 막대 — 값이 하나뿐일 때.
+   레퍼런스처럼 채워진 알약과 남은 만큼의 회색 블록을 한 칸 띄우고, 경계에 후광 마커를 세웁니다. */
+.cbar { display: flex; flex-direction: column; gap: var(--seed-dimension-x6); }
+.cbar__title { color: var(--seed-color-fg-neutral-muted); margin-bottom: var(--seed-dimension-x3); }
+.cbar__row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: var(--seed-dimension-x3);
+}
+.cbar__row + .cbar__row { margin-top: var(--seed-dimension-x3_5); }
+.cbar__name { color: var(--seed-color-fg-placeholder); white-space: nowrap; }
+.cbar__lane {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: var(--seed-dimension-x2);
+  height: 34px;
+}
+.cbar__fill,
+.cbar__rest {
+  display: block;
+  border-radius: var(--seed-radius-full);
+  min-width: 0;
+  transition: flex-basis var(--seed-duration-d6) var(--seed-timing-function-easing);
+}
+.cbar__rest { background-color: var(--seed-color-palette-gray-200); }
+.cbar__fill[data-arm="asis"] { background-color: var(--seed-color-palette-gray-400); }
+.cbar__fill[data-arm="tobe"] {
+  background-color: var(--seed-color-palette-carrot-600);
+  background-image: var(--hatch);
+}
+/* 채워진 구간이 끝나는 자리에 서는 후광 마커 */
+.cbar__marker {
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: var(--seed-radius-full);
+  background-color: var(--seed-color-palette-carrot-200);
+  pointer-events: none;
+}
+.cbar__marker::before,
+.cbar__marker::after {
+  content: "";
+  position: absolute;
+  border-radius: var(--seed-radius-full);
+  left: 50%;
+  top: 50%;
+}
+.cbar__marker::before {
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  background-color: var(--seed-color-bg-layer-default);
+  box-shadow: inset 0 0 0 1.5px var(--seed-color-palette-carrot-600);
+}
+.cbar__marker::after {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background-color: var(--seed-color-palette-carrot-600);
+}
+.cbar__val { color: var(--seed-color-fg-neutral); font-variant-numeric: tabular-nums; text-align: right; }
+
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.data th, table.data td {
+  text-align: left;
+  padding: var(--seed-dimension-x3) var(--seed-dimension-x3);
+  border-bottom: 1px solid var(--seed-color-stroke-neutral-subtle);
+  white-space: nowrap;
+}
+table.data th { color: var(--seed-color-fg-neutral-subtle); font-weight: var(--seed-font-weight-bold); }
+table.data td { color: var(--seed-color-fg-neutral); }
+
+.quote-list { display: flex; flex-direction: column; gap: var(--seed-dimension-x3); }
+.quote {
+  border-radius: var(--seed-radius-r3);
+  background-color: var(--seed-color-bg-layer-fill);
+  padding: var(--seed-dimension-x4);
+  color: var(--seed-color-fg-neutral);
+  word-break: keep-all;
+}
+.quote cite { display: block; margin-top: var(--seed-dimension-x2); color: var(--seed-color-fg-placeholder); font-style: normal; }
+
+.empty {
+  padding: var(--seed-dimension-x16) var(--seed-dimension-x6);
+  text-align: center;
+  color: var(--seed-color-fg-placeholder);
+}
+
+/* 잠금 화면 */
+.lock { min-height: 100vh; display: grid; place-items: center; padding: var(--seed-dimension-x6); }
+.lock__box {
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--seed-color-bg-layer-default);
+  border-radius: var(--seed-radius-r4);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-subtle);
+  padding: var(--seed-dimension-x8);
+  text-align: center;
+}
+.lock__box h1 { margin: var(--seed-dimension-x4) 0 var(--seed-dimension-x2); }
+.lock__box p { margin: 0 0 var(--seed-dimension-x6); color: var(--seed-color-fg-neutral-subtle); }
+.lock__error { margin-top: var(--seed-dimension-x3); color: var(--seed-color-fg-critical); min-height: var(--seed-line-height-t3); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Responsive — 데스크톱 진행을 전제로 하되, 좁은 화면에서도 깨지지 않게
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 1360px) {
+  .workspace { grid-template-columns: 232px minmax(0, 1fr) 400px; }
+  .survey { padding-left: var(--seed-dimension-x6); padding-right: var(--seed-dimension-x6); }
+}
+@media (max-width: 1180px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) 380px; }
+  .rail { display: none; }
+}
+@media (max-width: 900px) {
+  .app { grid-template-rows: auto 1fr; height: auto; min-height: 100vh; }
+  .topbar { flex-wrap: wrap; padding-top: var(--seed-dimension-x3); padding-bottom: var(--seed-dimension-x3); }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .proto { border-left: 0; border-top: 1px solid var(--seed-color-stroke-neutral-subtle); order: -1; }
+  .proto__stage { padding: var(--seed-dimension-x4); }
+  .device { height: 70vh; }
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .compare { grid-template-columns: 1fr; }
+}

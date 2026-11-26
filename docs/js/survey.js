@@ -845,7 +845,7 @@ const Survey = (() => {
       answers: {},
       tasks: {},
       maxIndex: 0,
-      meta: { ua: navigator.userAgent, viewport: window.innerWidth + '×' + window.innerHeight },
+  
     };
     Store.draft.set(record);
     render();

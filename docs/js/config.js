@@ -107,7 +107,7 @@ const ASIS_IS_PLACEHOLDER = false;
  *
  *   const RESPONSE_ENDPOINT = 'https://script.google.com/macros/s/AKfycb…/exec';
  */
-const RESPONSE_ENDPOINT = '';
+const RESPONSE_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxkWJSuywIMRoakQSxvUaOW0VbO7qqqc3rOyIyIussXblliknCzsHDhd2F7L-6vqFFSqA/exec';
 
 /* ═══════════════════════════════════════════════════════════════
    2. 진행 옵션
